@@ -79,7 +79,7 @@ class MyModelService(
             ?: throw Exception("Data not found")
     }
 
-    suspend fun findAllMyModels(field: String, value: String): MutableList<Any> {
+    suspend fun findAllMyModels(field: String, value: String): List<Any> {
         val query = NativeSearchQueryBuilder()
         if (!StringUtils.isEmpty(field) && !StringUtils.isEmpty(value)) {
             query.withQuery(QueryBuilders.matchQuery(field, value))
@@ -94,15 +94,13 @@ class MyModelService(
             .filter { obj: Any? -> Objects.nonNull(obj) }
             .doOnError { throwable -> logger.error(throwable.message, throwable) }
             .collectList().awaitSingle()
-            ?: throw Exception("Data not found")
     }
 
     suspend fun saveMyModel(myModel: MyModel): MyModel {
         return reactiveElasticsearchOperations.save(
             myModel,
             IndexCoordinates.of(MYMODEL_ES_INDEX)
-        ).doOnError { throwable -> logger.error(throwable.message, throwable) }.awaitFirstOrNull()
-            ?: throw Exception("Data not found")
+        ).doOnError { throwable -> logger.error(throwable.message, throwable) }.awaitSingle()
     }
 
     suspend fun deleteMyModelById(id: String): String {
